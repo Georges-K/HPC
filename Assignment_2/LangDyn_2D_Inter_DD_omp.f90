@@ -1,9 +1,11 @@
+!ifort -O3 LangDyn_2D_Inter_DD_omp.f90  -o test.x -fopenmp
+
 module globals
 ! Global variables
 implicit none
-integer :: n=16         ! number of particles
+integer :: n=50         ! number of particles
 integer :: nsec = 4
-real(8) :: L=1d0        ! box has dimensions L X L
+real(8) :: L=10d0        ! box has dimensions L X L
 double precision, parameter :: pi=2q0*asin(1q0) ! numerical constant
 end module globals
 
@@ -130,26 +132,30 @@ t_max=10d0
 
 call set_parameters
 call initialize_particles
+call neighbour_array_generator(neighbour_array)
 
 begin = omp_get_wtime()
 !call cpu_time(begin)
-
+!$omp parallel
 do while(t.lt.t_max)
+   !$omp single 
    vhx=vx+0.5*ax*dt
    vhy=vy+0.5*ay*dt
    x=x+vhx*dt
    y=y+vhy*dt
-
+   
    call check_BC(x,y,vhx,vhy)
+   !$omp end single
+
+   
       
    ax=0d0                   ! Add forces here if any
    ay=0d0                   ! Add forces here if any
 
    ! Before the computation of the total force, we need to compute the interaction forces:
-! loop over sectors s1
-   call neighbour_array_generator(neighbour_array)
-   !$omp parallel
-   !$omp do private(s1,s2,p1,p2)
+   
+   !print *,"number of threads = ', omp_get_num_threads()
+   !$omp do private(s1,s2,p1,p2,q,rx,ry,d,F)
 ! loop over sectors (s1)
    do s1=0,nsec**2-1
       call particle_list(x,y, s1, p_list)
@@ -178,28 +184,50 @@ do while(t.lt.t_max)
       end do
    end do
    !$omp end do
-   !$omp end parallel 
+   
+   !$omp single
+   !print *,'hello0 from thread num=', omp_get_thread_num()
    call random_number(ran1)
    ran1=ran1-0.5d0
    call random_number(ran2)
    ran2=ran2-0.5d0
-   
-   !$omp barrier
-   ax=ax-pref1*vhx+pref2*ran1
-   ay=ay-pref1*vhy+pref2*ran2
-      
-   vx=vhx+0.5*ax*dt
-   vy=vhy+0.5*ay*dt
+   !$omp end single
+   !print *,'hello0 from thread num=', omp_get_thread_num()
 
-   t=t+dt
-   write(11,*) n
-   write(11,*) "title"
-   do i=1,n
-      write(11,*) "a",x(i),y(i), "0.0"
-   end do
-   !write(11,*) ''
-   write(12,*) t,sqrt(sum(x**2+y**2)/real(n,8))
+   !$omp barrier
+
+   !$omp sections
+      !$omp section
+      !print *,'hello1 from thread num=', omp_get_thread_num()
+      ax=ax-pref1*vhx+pref2*ran1
+      ay=ay-pref1*vhy+pref2*ran2
+         
+      vx=vhx+0.5*ax*dt
+      vy=vhy+0.5*ay*dt
+      !$omp section
+      !print *,'hello2 from thread num=', omp_get_thread_num()
+   
+      write(11,*) n
+      write(11,*) "title"
+      do i=1,n
+         write(11,*) "a",x(i),y(i), "0.0"
+      end do
+      !write(11,*) ''
+      write(12,*) t,sqrt(sum(x**2+y**2)/real(n,8))
+      !$omp section
+      !print *,'hello3 from thread num=', omp_get_thread_num()
+      t=t+dt
+   !$omp end sections
+   
+   
+   
+
+    
+   
+
+
 end do
+!$omp end parallel
 
 end = omp_get_wtime()
 !call cpu_time(end)
