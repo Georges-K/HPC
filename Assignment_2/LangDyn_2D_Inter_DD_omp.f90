@@ -3,9 +3,10 @@
 module globals
 ! Global variables
 implicit none
-integer :: n=50         ! number of particles
+integer :: n=1000         ! number of particles
 integer :: nsec = 4
-real(8) :: L=10d0        ! box has dimensions L X L
+integer :: nthreads = 4
+real(8) :: L=1d0        ! box has dimensions L X L
 double precision, parameter :: pi=2q0*asin(1q0) ! numerical constant
 end module globals
 
@@ -112,7 +113,7 @@ double precision :: t,t_max,m1,m2
 double precision :: wtime,begin,end,d,rc,sigma,eps,rx,ry,F
 
 ! Open files
-open(11,file='trajectories.xyz')
+!open(11,file='trajectories.xyz')
 open(12,file='means')
 
 ! Set interaction parameters
@@ -136,7 +137,9 @@ call neighbour_array_generator(neighbour_array)
 
 begin = omp_get_wtime()
 !call cpu_time(begin)
+call omp_set_num_threads(nthreads)
 !$omp parallel
+
 do while(t.lt.t_max)
    !$omp single 
    vhx=vx+0.5*ax*dt
@@ -154,7 +157,7 @@ do while(t.lt.t_max)
 
    ! Before the computation of the total force, we need to compute the interaction forces:
    
-   !print *,"number of threads = ', omp_get_num_threads()
+   !print *,'number of threads = ', omp_get_num_threads()
    !$omp do private(s1,s2,p1,p2,q,rx,ry,d,F)
 ! loop over sectors (s1)
    do s1=0,nsec**2-1
@@ -207,11 +210,11 @@ do while(t.lt.t_max)
       !$omp section
       !print *,'hello2 from thread num=', omp_get_thread_num()
    
-      write(11,*) n
-      write(11,*) "title"
-      do i=1,n
-         write(11,*) "a",x(i),y(i), "0.0"
-      end do
+      !write(11,*) n
+      !write(11,*) "title"
+      !do i=1,n
+      !   write(11,*) "a",x(i),y(i), "0.0"
+      !end do
       !write(11,*) ''
       write(12,*) t,sqrt(sum(x**2+y**2)/real(n,8))
       !$omp section
@@ -236,7 +239,7 @@ print *,'Wtime=',end-begin
 ! De-allocate arrays
 deallocate(x,y,vx,vy,ax,ay,ran1,ran2,S,p_list)
 ! Close files
-close(11)
+!close(11)
 close(12)
 
 end program main
