@@ -3,9 +3,9 @@
 module globals
 ! Global variables
 implicit none
-integer :: n=1000         ! number of particles
+integer :: n=15         ! number of particles
 integer :: nsec = 4
-integer :: nthreads = 4
+integer :: nthreads = 8
 real(8) :: L=1d0        ! box has dimensions L X L
 double precision, parameter :: pi=2q0*asin(1q0) ! numerical constant
 end module globals
@@ -111,10 +111,14 @@ integer, allocatable, dimension(:,:) :: neighbour_array
 double precision, allocatable, dimension(:) :: ran1, ran2
 double precision :: t,t_max,m1,m2
 double precision :: wtime,begin,end,d,rc,sigma,eps,rx,ry,F
+character(len=1024) :: filename
 
 ! Open files
-!open(11,file='trajectories.xyz')
-open(12,file='means')
+!write (filename, "(A12,I4,A4)") "trajectories", n, ".xyz"
+!open(11,file='trim(filename)')
+
+write (filename, "(A8,I4,A5,I1,A3,I1,A4)") "means_n=", n, "_nth=", nthreads , "_m=", nsec, ".txt"
+open(12,file=trim(filename))
 
 ! Set interaction parameters
 sigma=1d-3
@@ -143,8 +147,9 @@ call omp_set_num_threads(nthreads)
 do while(t.lt.t_max)
    !$omp single 
    vhx=vx+0.5*ax*dt
-   vhy=vy+0.5*ay*dt
    x=x+vhx*dt
+
+   vhy=vy+0.5*ay*dt
    y=y+vhy*dt
    
    call check_BC(x,y,vhx,vhy)
@@ -158,7 +163,7 @@ do while(t.lt.t_max)
    ! Before the computation of the total force, we need to compute the interaction forces:
    
    !print *,'number of threads = ', omp_get_num_threads()
-   !$omp do private(s1,s2,p1,p2,q,rx,ry,d,F)
+   !$omp do private(s1,s2,p1,p2,q,p,rx,ry,d,F)
 ! loop over sectors (s1)
    do s1=0,nsec**2-1
       call particle_list(x,y, s1, p_list)
@@ -221,6 +226,7 @@ do while(t.lt.t_max)
       !print *,'hello3 from thread num=', omp_get_thread_num()
       t=t+dt
    !$omp end sections
+   !print *,'hello4 from thread num=', omp_get_thread_num()
    
    
    
@@ -230,16 +236,21 @@ do while(t.lt.t_max)
 
 
 end do
+
 !$omp end parallel
 
 end = omp_get_wtime()
 !call cpu_time(end)
-print *,'Wtime=',end-begin
+open(13,file='WallTime.txt', status="old", position="append", action="write")
+!print *,'Wtime=',end-begin
+!write (13,*) 'n', 'nsec', 'nthreads', 'L' , 'end-begin'
+write (13,*) n, nsec, nthreads, L , end-begin
 
 ! De-allocate arrays
 deallocate(x,y,vx,vy,ax,ay,ran1,ran2,S,p_list)
 ! Close files
 !close(11)
 close(12)
+close(13)
 
 end program main
