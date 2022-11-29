@@ -1,0 +1,12 @@
+Comments on Assignment 1 by Georges Karagozian.
+Final score: 70/100.
+
+General: The OMP implementation and discussion of the efficiency of the parallelization is missing. The discussion of the comparison you did make (gfortran versus ifort and optimization versus no optimization) is lacking in detail and explanation - it is mostly a statement of facts. If this is the final report, I cannot give more than 70 marks\ldots
+
+Report:
+* Do not use contractions like "Don't" and similar colloquialisms in your scientific writing!
+* Where is the comparison with the thread-parallel version?
+
+Code:
+* I like to Pyhotn script.
+* But where is the OMP implementation? 
