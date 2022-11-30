@@ -115,10 +115,10 @@ module globals
    close(100)
    
    ! Open files
-   write (filename, "(A13,I4,A4)") "Strajectories", n, ".xyz"
+   write (filename, "(A12,I4,A4)") "trajectories", n, ".xyz"
    open(11,file='trim(filename)')
    
-   write (filename, "(A9,I4,A5,I1,A3,I1,A4)") "smeans_n=", n, "_nth=", nthreads , "_m=", nsec, ".txt"
+   write (filename, "(A8,I4,A5,I1,A3,I1,A4)") "means_n=", n, "_nth=", nthreads , "_m=", nsec, ".txt"
    open(12,file=trim(filename))
    
    ! Set interaction parameters
