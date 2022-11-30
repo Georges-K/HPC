@@ -5,7 +5,7 @@ nthread = np.array([1,4,8,16])
 npart = np.array([50,100,500,1000])
 nsec = np.array([4,6])
 i = 0
-walltime = = open("WallTime.txt", "w")
+walltime = open("WallTime.txt", "w")
 walltime.close()
 
 for n in npart:
