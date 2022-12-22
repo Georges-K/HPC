@@ -1,0 +1,17 @@
+Feedback on assignment 2 by Georges Karagozian. 
+
+Overall: 75/100. There is a bug in the code and you did not include any pseudo-codes in the report. Otherwise, good work.
+
+Report:
+* It is a bit confusing to state the same equation twice with different symbols (namely (1) and (2)).
+* As a general rule, explain all variables/parameters right before or after stating an equation (e.g. \gamma and a remain unexplained).
+* "initial linear behaviour followed by an exponential growth as expected" Why is that expected? I actually expect slopes 2 for ballistic and 1 for diffusive motion - both are algebraic and not exponential.
+* It seems you forgot to subtract the initial particle positions when computing the MSD. Because of that, you will not clearly see the two regimes.
+* You notive there is saturation in the MSD. Why is that?
+* The vertical scale on your wall time plot is too large. A logarithmic scale may be better.
+* I am missing the pseudo-codes..
+
+Code:
+* Inside the parallel region the code calls particle_list. I think that should be done only by a single worker. If multiple threads call that routine at the same time, it may cause a race condition and/or a slowing down of the code.
+* You did not subtract the initial position when computing the MSD. Because of that, you will not be able to clearly see the ballistic and diffusive regimes in the MSD plot.
+* Your code processes several O(n) tasks in parallel. It would have been interesting to see if that is efficient at all.
